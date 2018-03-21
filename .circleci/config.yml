@@ -35,6 +35,7 @@ jobs:
       - APP_ID2: neangidmhhbjiafjgaikkheibndnnedm
       - APP_ID3: aiahofjolifbgcadfgojomechmacpalk
     steps:
+      - checkout
       - run:
           name: "Make Extension Production Ready"
           command: |
