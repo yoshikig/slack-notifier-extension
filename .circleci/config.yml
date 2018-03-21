@@ -1,0 +1,63 @@
+workflows:
+  version: 2
+  main:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - publish:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /release\-v[0-9]+(\.[0-9]+)*/
+
+
+version: 2
+jobs:
+  test:
+    docker:
+      - image: cibuilds/chrome-extension:latest
+    steps:
+      - checkout
+      - run:
+          name: "Run Tests"
+          command: echo "Run any tests here."
+
+  publish:
+    docker:
+      - image: cibuilds/chrome-extension:latest
+    environment:
+      - APP_ID: kakobcngcdammkoichboliceegfcdghe
+      - APP_ID2: neangidmhhbjiafjgaikkheibndnnedm
+      - APP_ID3: aiahofjolifbgcadfgojomechmacpalk
+    steps:
+      - run:
+          name: "Make Extension Production Ready"
+          command: |
+              jq ".version = \"${CIRCLE_TAG#release-v}\"" src/manifest.json | sponge src/manifest.json
+              jq ".version_name = \"${CIRCLE_TAG} (${CIRCLE_SHA1})\"" src/manifest.json | sponge src/manifest.json
+      - run:
+          name: "Create clones"
+          command: |
+              cp -r src src2
+              cp -r src src3
+              jq ".name = \"Slack Notifier\"" src/manifest.json | sponge src/manifest.json
+              jq ".name = \"Slack Notifier (02)\"" src2/manifest.json | sponge src2/manifest.json
+              jq ".name = \"Slack Notifier (03)\"" src3/manifest.json | sponge src3/manifest.json
+              sh -c 'cd src; zip ../extension.zip *;'
+              sh -c 'cd src2; zip ../extension2.zip *;'
+              sh -c 'cd src3; zip ../extension3.zip *;'
+      - run:
+          name: "Publish to the Google Chrome Store"
+          command: |
+              ACCESS_TOKEN=$(curl "https://accounts.google.com/o/oauth2/token" -d "client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&refresh_token=${REFRESH_TOKEN}&grant_type=refresh_token&redirect_uri=urn:ietf:wg:oauth:2.0:oob" | jq -r .access_token)
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T extension.zip -v "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APP_ID}"
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "https://www.googleapis.com/chromewebstore/v1.1/items/${APP_ID}/publish?publishTarget=trustedTesters"
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T extension2.zip -v "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APP_ID2}"
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "https://www.googleapis.com/chromewebstore/v1.1/items/${APP_ID2}/publish?publishTarget=trustedTesters"
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T extension3.zip -v "https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APP_ID3}"
+              curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "https://www.googleapis.com/chromewebstore/v1.1/items/${APP_ID3}/publish?publishTarget=trustedTesters"
