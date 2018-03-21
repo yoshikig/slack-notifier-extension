@@ -44,7 +44,7 @@ jobs:
           name: "Make Extension Production Ready"
           command: |
               jq ".version = \"${CIRCLE_TAG#release-v}\"" src/manifest.json | sponge src/manifest.json
-              jq ".version_name = \"${CIRCLE_TAG} (${CIRCLE_SHA1})\"" src/manifest.json | sponge src/manifest.json
+              jq ".version_name = \"${CIRCLE_TAG#release-} (${CIRCLE_SHA1:0:10})\"" src/manifest.json | sponge src/manifest.json
       - run:
           name: "Create clones"
           command: |
