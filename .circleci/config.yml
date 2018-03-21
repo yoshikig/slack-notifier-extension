@@ -37,6 +37,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Install Dependencies"
+          command: |
+            apk add --no-cache zip
+      - run:
           name: "Make Extension Production Ready"
           command: |
               jq ".version = \"${CIRCLE_TAG#release-v}\"" src/manifest.json | sponge src/manifest.json
