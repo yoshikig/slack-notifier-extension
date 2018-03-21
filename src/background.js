@@ -11,6 +11,7 @@ function clearGlobalValues() {
   g.token = '';
   g.teamInfo = null;
   g.iconImageElement = null;
+  g.iconImageUrl = '';
   g.unreadCounts = {};
   g.mentionCounts = {};
 }
@@ -116,6 +117,7 @@ function getIconImageElement() {
       img.src = teamInfo.icon.image_132;
       img.onload = (() => {
         g.iconImageElement = img;
+        g.iconImageUrl = teamInfo.icon.image_132;
         resolve(img);
       });
       img.onerror = (() => {
@@ -129,8 +131,8 @@ function setIcon(isGray) {
   return getIconImageElement().then(image => {
     var c = document.createElement('canvas');
     var ctx=c.getContext("2d");
-    ctx.drawImage(image, 0, 0);
-    var imageData = ctx.getImageData(0, 0, 132, 132);
+    ctx.drawImage(image, 0, 0, 19, 19);
+    var imageData = ctx.getImageData(0, 0, 19, 19);
 
     if (isGray)
       glayize(imageData);
@@ -210,6 +212,10 @@ function startWebSocket() {
         updateUnreadCount();
       } else if (json.type === 'presence_change') {
       } else if (json.type === 'reconnect_url') {
+      } else if (json.type === 'desktop_notification') {
+        //chrome.notifications.create("ID", {type: 'basic', iconUrl: json.avaterImage, title: json.title, message: json.content + " "});
+        new Notification(json.title, {icon: json.avaterImage, badge: g.iconImageUrl, body: json.content + " "}); 
+        console.log(json);
       } else {
         console.log(json);
       }

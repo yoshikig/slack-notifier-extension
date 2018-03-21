@@ -1,7 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Slack Notify",
-  "version": "0.0.1",
+  "name": "Slack Notifier (DEV)",
+  "version": "999",
+  "version_name": "unreleased",
 
   "background":  {
     "scripts": ["background.js"],
@@ -9,5 +10,5 @@
   },
   "options_page": "options.html",
   "browser_action": { "default_icon": "slack.png" },
-  "permissions": ["http://*/", "https://*/", "alarms", "storage", "tabs"]
+  "permissions": ["http://*/", "https://*/", "alarms", "notifications", "storage", "tabs"]
 }
