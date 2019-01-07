@@ -59,7 +59,7 @@ function sendInternal(api, args) {
     return res.json();
   }).then(json => {
     if (!json.ok) {
-      console.error(api, formDara, json);
+      console.error(api, formData, json);
       return Promise.reject('Slack API error: ' + json.ok);
     }
 
@@ -74,8 +74,10 @@ function isUnread() {
       g.unreadCounts = {};
       g.mentionCounts = {};
       json.channels.forEach(c => {
-        g.unreadCounts[c.id] = c.unread_count_display;
-        g.mentionCounts[c.id] = c.mention_count_display;
+        if (!c.is_muted) {
+          g.unreadCounts[c.id] = c.unread_count_display;
+          g.mentionCounts[c.id] = c.mention_count_display;
+        }
       });
       json.groups.forEach(c => {
         g.unreadCounts[c.id] = c.unread_count_display;
